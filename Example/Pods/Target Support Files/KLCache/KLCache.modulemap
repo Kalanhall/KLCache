@@ -1,0 +1,6 @@
+framework module KLCache {
+  umbrella header "KLCache-umbrella.h"
+
+  export *
+  module * { export * }
+}

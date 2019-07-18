@@ -1,0 +1,16 @@
+PODS:
+  - KLCache (1.0.0)
+
+DEPENDENCIES:
+  - KLCache (from `../`)
+
+EXTERNAL SOURCES:
+  KLCache:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  KLCache: 2b49016cc4eb4a530fd77c0850fc060e3426e5ba
+
+PODFILE CHECKSUM: 91ee1b30327c1feb697b3b3fd021ab22b087009a
+
+COCOAPODS: 1.7.4
