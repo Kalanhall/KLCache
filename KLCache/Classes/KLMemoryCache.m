@@ -3,7 +3,7 @@
 //  KLCache <https://github.com/Kalan/KLImage>
 //
 //  Created by Kalan on 15/2/7.
-//  Copyright (c) 2015 ibireme.
+//  Copyright (c) 2015 Kalan.
 //
 //  This source code is licensed under the MIT-style license found in the
 //  LICENSE file in the root directory of this source tree.
@@ -323,7 +323,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     self = super.init;
     pthread_mutex_init(&_lock, NULL);
     _lru = [_YYLinkedMap new];
-    _queue = dispatch_queue_create("com.ibireme.cache.memory", DISPATCH_QUEUE_SERIAL);
+    _queue = dispatch_queue_create("com.Kalan.cache.memory", DISPATCH_QUEUE_SERIAL);
     
     _countLimit = NSUIntegerMax;
     _costLimit = NSUIntegerMax;
