@@ -24,10 +24,10 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
  A node in linked map.
  Typically, you should not use this class directly.
  */
-@interface _YYLinkedMapNode : NSObject {
+@interface _KLLinkedMapNode : NSObject {
     @package
-    __unsafe_unretained _YYLinkedMapNode *_prev; // retained by dic
-    __unsafe_unretained _YYLinkedMapNode *_next; // retained by dic
+    __unsafe_unretained _KLLinkedMapNode *_prev; // retained by dic
+    __unsafe_unretained _KLLinkedMapNode *_next; // retained by dic
     id _key;
     id _value;
     NSUInteger _cost;
@@ -35,7 +35,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
 }
 @end
 
-@implementation _YYLinkedMapNode
+@implementation _KLLinkedMapNode
 @end
 
 
@@ -45,38 +45,38 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
  
  Typically, you should not use this class directly.
  */
-@interface _YYLinkedMap : NSObject {
+@interface _KLLinkedMap : NSObject {
     @package
     CFMutableDictionaryRef _dic; // do not set object directly
     NSUInteger _totalCost;
     NSUInteger _totalCount;
-    _YYLinkedMapNode *_head; // MRU, do not change it directly
-    _YYLinkedMapNode *_tail; // LRU, do not change it directly
+    _KLLinkedMapNode *_head; // MRU, do not change it directly
+    _KLLinkedMapNode *_tail; // LRU, do not change it directly
     BOOL _releaseOnMainThread;
     BOOL _releaseAsynchronously;
 }
 
 /// Insert a node at head and update the total cost.
 /// Node and node.key should not be nil.
-- (void)insertNodeAtHead:(_YYLinkedMapNode *)node;
+- (void)insertNodeAtHead:(_KLLinkedMapNode *)node;
 
 /// Bring a inner node to header.
 /// Node should already inside the dic.
-- (void)bringNodeToHead:(_YYLinkedMapNode *)node;
+- (void)bringNodeToHead:(_KLLinkedMapNode *)node;
 
 /// Remove a inner node and update the total cost.
 /// Node should already inside the dic.
-- (void)removeNode:(_YYLinkedMapNode *)node;
+- (void)removeNode:(_KLLinkedMapNode *)node;
 
 /// Remove tail node if exist.
-- (_YYLinkedMapNode *)removeTailNode;
+- (_KLLinkedMapNode *)removeTailNode;
 
 /// Remove all node in background queue.
 - (void)removeAll;
 
 @end
 
-@implementation _YYLinkedMap
+@implementation _KLLinkedMap
 
 - (instancetype)init {
     self = [super init];
@@ -90,7 +90,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     CFRelease(_dic);
 }
 
-- (void)insertNodeAtHead:(_YYLinkedMapNode *)node {
+- (void)insertNodeAtHead:(_KLLinkedMapNode *)node {
     CFDictionarySetValue(_dic, (__bridge const void *)(node->_key), (__bridge const void *)(node));
     _totalCost += node->_cost;
     _totalCount++;
@@ -103,7 +103,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     }
 }
 
-- (void)bringNodeToHead:(_YYLinkedMapNode *)node {
+- (void)bringNodeToHead:(_KLLinkedMapNode *)node {
     if (_head == node) return;
     
     if (_tail == node) {
@@ -119,7 +119,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     _head = node;
 }
 
-- (void)removeNode:(_YYLinkedMapNode *)node {
+- (void)removeNode:(_KLLinkedMapNode *)node {
     CFDictionaryRemoveValue(_dic, (__bridge const void *)(node->_key));
     _totalCost -= node->_cost;
     _totalCount--;
@@ -129,9 +129,9 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     if (_tail == node) _tail = node->_prev;
 }
 
-- (_YYLinkedMapNode *)removeTailNode {
+- (_KLLinkedMapNode *)removeTailNode {
     if (!_tail) return nil;
-    _YYLinkedMapNode *tail = _tail;
+    _KLLinkedMapNode *tail = _tail;
     CFDictionaryRemoveValue(_dic, (__bridge const void *)(_tail->_key));
     _totalCost -= _tail->_cost;
     _totalCount--;
@@ -174,7 +174,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
 
 @implementation KLMemoryCache {
     pthread_mutex_t _lock;
-    _YYLinkedMap *_lru;
+    _KLLinkedMap *_lru;
     dispatch_queue_t _queue;
 }
 
@@ -212,7 +212,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     while (!finish) {
         if (pthread_mutex_trylock(&_lock) == 0) {
             if (_lru->_totalCost > costLimit) {
-                _YYLinkedMapNode *node = [_lru removeTailNode];
+                _KLLinkedMapNode *node = [_lru removeTailNode];
                 if (node) [holder addObject:node];
             } else {
                 finish = YES;
@@ -246,7 +246,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     while (!finish) {
         if (pthread_mutex_trylock(&_lock) == 0) {
             if (_lru->_totalCount > countLimit) {
-                _YYLinkedMapNode *node = [_lru removeTailNode];
+                _KLLinkedMapNode *node = [_lru removeTailNode];
                 if (node) [holder addObject:node];
             } else {
                 finish = YES;
@@ -281,7 +281,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
     while (!finish) {
         if (pthread_mutex_trylock(&_lock) == 0) {
             if (_lru->_tail && (now - _lru->_tail->_time) > ageLimit) {
-                _YYLinkedMapNode *node = [_lru removeTailNode];
+                _KLLinkedMapNode *node = [_lru removeTailNode];
                 if (node) [holder addObject:node];
             } else {
                 finish = YES;
@@ -322,7 +322,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
 - (instancetype)init {
     self = super.init;
     pthread_mutex_init(&_lock, NULL);
-    _lru = [_YYLinkedMap new];
+    _lru = [_KLLinkedMap new];
     _queue = dispatch_queue_create("com.Kalan.cache.memory", DISPATCH_QUEUE_SERIAL);
     
     _countLimit = NSUIntegerMax;
@@ -397,7 +397,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
 - (id)objectForKey:(id)key {
     if (!key) return nil;
     pthread_mutex_lock(&_lock);
-    _YYLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
+    _KLLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
     if (node) {
         node->_time = CACurrentMediaTime();
         [_lru bringNodeToHead:node];
@@ -417,7 +417,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
         return;
     }
     pthread_mutex_lock(&_lock);
-    _YYLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
+    _KLLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
     NSTimeInterval now = CACurrentMediaTime();
     if (node) {
         _lru->_totalCost -= node->_cost;
@@ -427,7 +427,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
         node->_value = object;
         [_lru bringNodeToHead:node];
     } else {
-        node = [_YYLinkedMapNode new];
+        node = [_KLLinkedMapNode new];
         node->_cost = cost;
         node->_time = now;
         node->_key = key;
@@ -440,7 +440,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
         });
     }
     if (_lru->_totalCount > _countLimit) {
-        _YYLinkedMapNode *node = [_lru removeTailNode];
+        _KLLinkedMapNode *node = [_lru removeTailNode];
         if (_lru->_releaseAsynchronously) {
             dispatch_queue_t queue = _lru->_releaseOnMainThread ? dispatch_get_main_queue() : KLMemoryCacheGetReleaseQueue();
             dispatch_async(queue, ^{
@@ -458,7 +458,7 @@ static inline dispatch_queue_t KLMemoryCacheGetReleaseQueue() {
 - (void)removeObjectForKey:(id)key {
     if (!key) return;
     pthread_mutex_lock(&_lock);
-    _YYLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
+    _KLLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
     if (node) {
         [_lru removeNode:node];
         if (_lru->_releaseAsynchronously) {

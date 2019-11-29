@@ -22,7 +22,7 @@
 static const int extended_data_key;
 
 /// Free disk space in bytes.
-static int64_t _YYDiskSpaceFree() {
+static int64_t _KLDiskSpaceFree() {
     NSError *error = nil;
     NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfFileSystemForPath:NSHomeDirectory() error:&error];
     if (error) return -1;
@@ -32,7 +32,7 @@ static int64_t _YYDiskSpaceFree() {
 }
 
 /// String's md5 hash.
-static NSString *_YYNSStringMD5(NSString *string) {
+static NSString *_KLNSStringMD5(NSString *string) {
     if (!string) return nil;
     NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
     unsigned char result[CC_MD5_DIGEST_LENGTH];
@@ -134,7 +134,7 @@ static void _KLDiskCacheSetGlobal(KLDiskCache *cache) {
     if (targetFreeDiskSpace == 0) return;
     int64_t totalBytes = [_kv getItemsSize];
     if (totalBytes <= 0) return;
-    int64_t diskFreeBytes = _YYDiskSpaceFree();
+    int64_t diskFreeBytes = _KLDiskSpaceFree();
     if (diskFreeBytes < 0) return;
     int64_t needTrimBytes = targetFreeDiskSpace - diskFreeBytes;
     if (needTrimBytes <= 0) return;
@@ -146,7 +146,7 @@ static void _KLDiskCacheSetGlobal(KLDiskCache *cache) {
 - (NSString *)_filenameForKey:(NSString *)key {
     NSString *filename = nil;
     if (_customFileNameBlock) filename = _customFileNameBlock(key);
-    if (!filename) filename = _YYNSStringMD5(key);
+    if (!filename) filename = _KLNSStringMD5(key);
     return filename;
 }
 

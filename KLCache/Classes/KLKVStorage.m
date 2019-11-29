@@ -57,7 +57,7 @@ static NSString *const kTrashDirectoryName = @"trash";
  */
 
 /// Returns nil in App Extension.
-static UIApplication *_YYSharedApplication() {
+static UIApplication *_KLSharedApplication() {
     static BOOL isAppExtension = NO;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -727,10 +727,10 @@ static UIApplication *_YYSharedApplication() {
 }
 
 - (void)dealloc {
-    UIBackgroundTaskIdentifier taskID = [_YYSharedApplication() beginBackgroundTaskWithExpirationHandler:^{}];
+    UIBackgroundTaskIdentifier taskID = [_KLSharedApplication() beginBackgroundTaskWithExpirationHandler:^{}];
     [self _dbClose];
     if (taskID != UIBackgroundTaskInvalid) {
-        [_YYSharedApplication() endBackgroundTask:taskID];
+        [_KLSharedApplication() endBackgroundTask:taskID];
     }
 }
 
